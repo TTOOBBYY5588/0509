@@ -4,6 +4,8 @@
 let video;
 let handPose;
 let hands = [];
+let boxX, boxY, boxSize = 100;
+let isDragging = false;
 
 function preload() {
   // Initialize HandPose model with flipped video input
@@ -25,10 +27,19 @@ function setup() {
 
   // Start detecting hands
   handPose.detectStart(video, gotHands);
+
+  // Initialize the box position
+  boxX = width / 2 - boxSize / 2;
+  boxY = height / 2 - boxSize / 2;
 }
 
 function draw() {
   image(video, 0, 0);
+
+  // Draw the box
+  fill(200, 100, 100, 150);
+  noStroke();
+  rect(boxX, boxY, boxSize, boxSize);
 
   // Ensure at least one hand is detected
   if (hands.length > 0) {
@@ -76,6 +87,38 @@ function draw() {
         // Connect keypoints 17 to 20
         for (let i = 17; i < 20; i++) {
           line(hand.keypoints[i].x, hand.keypoints[i].y, hand.keypoints[i + 1].x, hand.keypoints[i + 1].y);
+        }
+
+        // Check for interaction with the box
+        let indexFinger = hand.keypoints[8];
+        let thumb = hand.keypoints[4];
+
+        // Check if the index finger is touching the box
+        if (
+          indexFinger.x > boxX &&
+          indexFinger.x < boxX + boxSize &&
+          indexFinger.y > boxY &&
+          indexFinger.y < boxY + boxSize
+        ) {
+          // Move the box with the index finger
+          boxX = indexFinger.x - boxSize / 2;
+          boxY = indexFinger.y - boxSize / 2;
+        }
+
+        // Check if both index finger and thumb are touching the box
+        if (
+          indexFinger.x > boxX &&
+          indexFinger.x < boxX + boxSize &&
+          indexFinger.y > boxY &&
+          indexFinger.y < boxY + boxSize &&
+          thumb.x > boxX &&
+          thumb.x < boxX + boxSize &&
+          thumb.y > boxY &&
+          thumb.y < boxY + boxSize
+        ) {
+          // Change the box color when both fingers touch it
+          fill(100, 200, 100, 150);
+          rect(boxX, boxY, boxSize, boxSize);
         }
       }
     }
